@@ -8,14 +8,9 @@ This site is part of my attempt to answer a simple question: what does it take t
 
 Everything here connects to that question.
 
-**Privacy**  
-How surveillance works, how it spreads, and how individuals can protect the space they need to think, grow, and act without being shaped by external eyes.
-
-**Anti-censorship**  
-How speech is constrained through friction, moderation, and algorithmic steering, and how people can route around systems that quietly narrow what can be said.
-
-**Sovereignty**  
-How to own your tools, your data, and your identity, and how to avoid outsourcing agency to platforms that were never designed with your interests in mind.
+* **Privacy** - How surveillance works, how it spreads, and how individuals can protect the space they need to think, grow, and act without being shaped by external eyes.
+* **Anti-censorship** - How speech is constrained through friction, moderation, and algorithmic steering, and how people can route around systems that quietly narrow what can be said.
+* **Sovereignty** - How to own your tools, your data, and your identity, and how to avoid outsourcing agency to platforms that were never designed with your interests in mind.
 
 ## Essays
 I write because most people never get to see how the systems around them actually work, and what that not knowing costs them. My essays explore the invisible forces that shape the digital world, the defaults that define what feels normal, and the choices that keep autonomy possible.
