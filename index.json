@@ -3,5 +3,11 @@
     "title": "Home",
     "route": "home",
     "file": "./home.md"
+  },
+  {
+    "title": "Essays",
+    "children": [
+      { "title": "Why I Write", "route": "essays-tech", "file": "essays/why-i-write.md" }
+    ]
   }
 ]
