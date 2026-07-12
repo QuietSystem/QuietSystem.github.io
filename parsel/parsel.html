@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envelope — Share a secret, privately</title>
+<meta name="description" content="Encrypt a secret in your browser and share it. Nothing is uploaded, stored, or transmitted.">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="parsel.css">
+</head>
+<body data-state="create" data-theme="auto">
+
+  <div class="noise-guard" aria-hidden="true"></div>
+
+  <header class="top-bar">
+    <div class="wordmark">
+      <span class="seal-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="10" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M7 10V7a5 5 0 0 1 10 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="wordmark-text">envelope</span>
+    </div>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle color theme">
+      <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/>
+        <path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </header>
+
+  <main class="stage" id="stage">
+
+    <!-- ============ CREATE STATE ============ -->
+    <section class="panel" data-panel="create" aria-labelledby="createHeading">
+      <div class="card">
+        <h1 id="createHeading" class="card-title">Share a secret</h1>
+        <p class="card-subtitle">Encrypted on this device. Nothing is uploaded until you choose to share it.</p>
+
+        <div class="field">
+          <div class="field-head">
+            <label for="secretInput">Secret</label>
+            <span class="counter" id="charCounter">0 characters</span>
+          </div>
+          <textarea id="secretInput" placeholder="Paste or type the secret you want to share…" rows="7" spellcheck="false" autocomplete="off"></textarea>
+          <div class="field-foot">
+            <span id="sizeEstimate" class="hint">Encrypted size: —</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="passwordInput">Password</label>
+          <div class="password-row">
+            <input id="passwordInput" type="password" placeholder="Choose a strong password" autocomplete="new-password" aria-describedby="pwStrengthLabel">
+            <button type="button" class="icon-btn" id="togglePassword" aria-label="Show password" aria-pressed="false">
+              <svg class="icon-eye" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6"/>
+                <circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.6"/>
+              </svg>
+              <svg class="icon-eye-off" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M3 3l18 18M10.6 10.7a2.6 2.6 0 0 0 3.7 3.6M6.2 6.4C3.7 8 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.4 4.5-1.1M9.9 4.2A10.6 10.6 0 0 1 12 4c6.4 0 10 8 10 8a15 15 0 0 1-3 3.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="strength-row" aria-hidden="false">
+            <div class="strength-track">
+              <div class="strength-fill" id="strengthFill"></div>
+            </div>
+            <span class="strength-label" id="pwStrengthLabel">Enter a password</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block" id="encryptBtn" disabled>
+          <span class="btn-label">Encrypt secret</span>
+        </button>
+
+        <p class="fine-print">
+          Encrypted locally with AES-256-GCM. The password never leaves your browser and is not included in the encrypted package.
+        </p>
+      </div>
+
+      <button type="button" class="link-affordance" id="goToLoad">Have an encrypted package to open instead? →</button>
+    </section>
+
+    <!-- ============ ENCRYPTING (transient overlay state, shown within create) ============ -->
+    <div class="seal-overlay" id="sealOverlay" aria-hidden="true">
+      <div class="seal-anim" aria-hidden="true">
+        <svg viewBox="0 0 120 120" width="88" height="88">
+          <circle cx="60" cy="60" r="40" class="seal-ring" fill="none" stroke-width="3"/>
+          <path d="M40 58l14 14 26-30" class="seal-check" fill="none" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <p class="seal-text">Encrypting…</p>
+    </div>
+
+    <!-- ============ SHARE STATE ============ -->
+    <section class="panel" data-panel="share" aria-labelledby="shareHeading">
+      <div class="card">
+        <div class="status-row">
+          <span class="status-dot" aria-hidden="true"></span>
+          <h1 id="shareHeading" class="card-title">Ready to share</h1>
+        </div>
+        <p class="card-subtitle">Send the link and the password through <strong>different channels</strong> — for example, the link by email and the password by phone.</p>
+
+        <div class="field">
+          <label for="shareUrl">Share URL</label>
+          <div class="copy-row">
+            <input id="shareUrl" type="text" readonly>
+            <button type="button" class="btn btn-secondary" id="copyUrlBtn">Copy</button>
+          </div>
+        </div>
+
+        <div class="qr-wrap" id="qrWrap" hidden>
+          <div class="qr-box" id="qrBox" role="img" aria-label="QR code of the share URL"></div>
+          <span class="hint">Scan to open on another device</span>
+        </div>
+        <p class="hint qr-disabled-hint" id="qrDisabledHint" hidden>QR code skipped — the package is too large to encode as a scannable QR.</p>
+
+        <div class="field">
+          <div class="field-head">
+            <label for="packageOutput">Encrypted package</label>
+          </div>
+          <textarea id="packageOutput" readonly rows="4" class="mono-area"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" id="copyPackageBtn">Copy package</button>
+          <button type="button" class="btn btn-secondary" id="downloadPackageBtn">Download .secret file</button>
+        </div>
+
+        <button type="button" class="btn btn-ghost btn-block" id="createAnotherBtn">Create another secret</button>
+      </div>
+    </section>
+
+    <!-- ============ LOAD STATE ============ -->
+    <section class="panel" data-panel="load" aria-labelledby="loadHeading">
+      <div class="card">
+        <h1 id="loadHeading" class="card-title">Open a secret</h1>
+        <p class="card-subtitle">Paste an encrypted package, drop a file, or open a link that already contains one.</p>
+
+        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop an encrypted file here, or press to choose a file">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 15V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <span>Drop a <code>.secret</code> or <code>.bin</code> file, or click to choose</span>
+          <input type="file" id="fileInput" hidden accept=".secret,.bin,.txt">
+        </div>
+
+        <div class="divider"><span>or</span></div>
+
+        <div class="field">
+          <label for="pasteInput">Paste encrypted package</label>
+          <textarea id="pasteInput" rows="4" class="mono-area" placeholder="v1...."></textarea>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block" id="continueLoadBtn" disabled>Continue</button>
+      </div>
+    </section>
+
+    <!-- ============ PASSWORD PROMPT STATE ============ -->
+    <section class="panel" data-panel="password" aria-labelledby="passwordHeading">
+      <div class="card">
+        <h1 id="passwordHeading" class="card-title">Enter password</h1>
+        <p class="card-subtitle">This package is encrypted. Enter the password to reveal its contents.</p>
+
+        <div class="field">
+          <label for="decryptPasswordInput">Password</label>
+          <div class="password-row">
+            <input id="decryptPasswordInput" type="password" placeholder="Password" autocomplete="off">
+            <button type="button" class="icon-btn" id="toggleDecryptPassword" aria-label="Show password" aria-pressed="false">
+              <svg class="icon-eye" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z" stroke="currentColor" stroke-width="1.6"/>
+                <circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.6"/>
+              </svg>
+              <svg class="icon-eye-off" viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M3 3l18 18M10.6 10.7a2.6 2.6 0 0 0 3.7 3.6M6.2 6.4C3.7 8 2 12 2 12s3.6 7 10 7c1.7 0 3.2-.4 4.5-1.1M9.9 4.2A10.6 10.6 0 0 1 12 4c6.4 0 10 8 10 8a15 15 0 0 1-3 3.9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block" id="decryptBtn">Decrypt</button>
+        <button type="button" class="link-affordance" id="backFromPassword">← Start over</button>
+      </div>
+    </section>
+
+    <!-- ============ REVEAL STATE ============ -->
+    <section class="panel" data-panel="reveal" aria-labelledby="revealHeading">
+      <div class="card">
+        <div class="status-row">
+          <span class="status-dot success" aria-hidden="true"></span>
+          <h1 id="revealHeading" class="card-title">Decrypted</h1>
+        </div>
+        <p class="card-subtitle">This secret exists only in your browser's memory right now.</p>
+
+        <pre class="reveal-box" id="revealOutput" tabindex="0"></pre>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" id="copySecretBtn">Copy</button>
+          <button type="button" class="btn btn-secondary" id="downloadSecretBtn">Download</button>
+          <button type="button" class="btn btn-secondary" id="hideSecretBtn">Hide</button>
+        </div>
+        <button type="button" class="btn btn-ghost btn-block" id="clearSecretBtn">Clear from memory</button>
+      </div>
+    </section>
+
+    <!-- ============ ERROR STATE ============ -->
+    <section class="panel" data-panel="error" aria-labelledby="errorHeading">
+      <div class="card">
+        <div class="status-row">
+          <span class="status-dot danger" aria-hidden="true"></span>
+          <h1 id="errorHeading" class="card-title">Something went wrong</h1>
+        </div>
+        <p class="card-subtitle" id="errorMessage">Unknown error.</p>
+        <button type="button" class="btn btn-primary btn-block" id="errorBackBtn">Start over</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot-note">
+    <p>No servers. No accounts. No tracking. Everything above runs entirely in this browser tab.</p>
+  </footer>
+
+  <div class="sr-only" aria-live="polite" id="liveRegion"></div>
+
+  <script src="parsel.js"></script>
+</body>
+</html>
