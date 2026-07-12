@@ -7,7 +7,7 @@
   {
     "title": "Essays",
     "children": [
-      { "title": "Why I Write", "route": "essays-tech", "file": "essays/why-i-write.md" }
+      { "title": "Why I Write", "route": "why-i-write", "file": "essays/why-i-write.md" }
     ]
   }
 ]
